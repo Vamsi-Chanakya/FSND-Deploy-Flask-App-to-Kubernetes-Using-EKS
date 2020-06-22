@@ -1,5 +1,6 @@
 """
 A simple app to create a JWT token.
+JWT_SECRET = 'VamsiChanakya'
 """
 import os
 import logging
