@@ -1,0 +1,155 @@
+AWS User Details :
+
+$ cd .aws/
+
+$ ls -altr
+
+	-rwxr-xr-x   1 vamsi  staff   230 Jun 21 14:40 credentials
+	drwxr-xr-x   4 vamsi  staff   128 Jun 21 14:40 .
+	-rwxr-xr-x   1 vamsi  staff    82 Jun 21 20:51 config
+	drwxr-xr-x+ 62 vamsi  staff  1984 Jun 21 22:56 ..
+
+$ cat credentials
+	[default]
+	aws_access_key_id = AKIAWCG27L6NRI6L5HS4
+	aws_secret_access_key = 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
+	[vamsi]
+	aws_access_key_id = AKIAWCG27L6NRI6L5HS4
+	aws_secret_access_key = 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
+
+$ cat config
+	[profile vamsi]
+	region = us-west-2
+	[profile default]
+	[default]
+	region = us-east-2
+
+
+In this project you will:
+
+1. Write a Dockerfile to build a Docker image for a simple Flask API.
+	/Users/vamsi/PycharmProjects/FSND-Deploy-Flask-App-to-Kubernetes-Using-EKS/Dockerfile
+
+2. Build and test the container locally
+	/Users/vamsi/PycharmProjects/FSND-Deploy-Flask-App-to-Kubernetes-Using-EKS/env_file
+
+3. Create an EKS cluster
+	
+	$ eksctl create cluster --name simple-jwt-api
+
+	[ℹ]  nodegroup "ng-6970c288" has 2 node(s)
+	[ℹ]  node "ip-192-168-58-135.us-east-2.compute.internal" is ready
+	[ℹ]  node "ip-192-168-92-154.us-east-2.compute.internal" is ready
+	[ℹ]  kubectl command should work with "/Users/vamsi/.kube/config", try 'kubectl get nodes'
+	[✔]  EKS cluster "simple-jwt-api" in "us-east-2" region is ready
+
+	$ kubectl get nodes
+	
+	NAME                                           STATUS   ROLES    AGE   VERSION
+	ip-192-168-58-135.us-east-2.compute.internal   Ready    <none>   11m   v1.15.11-eks-af3caf
+	ip-192-168-92-154.us-east-2.compute.internal   Ready    <none>   11m   v1.15.11-eks-af3caf
+
+	Set Up an IAM Role for the Cluster
+
+		A) Set an environment variable ACCOUNT_ID to the value of your AWS account id. You can do this with awscli:
+		ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+		$ echo $ACCOUNT_ID
+		417071062939
+
+		B) Create a role policy document that allows the actions "eks:Describe*" and "ssm:GetParameters". You can do this by setting an environment variable with the role policy:
+		$ TRUST="{ \"Version\": \"2012-10-17\", \"Statement\": [ { \"Effect\": \"Allow\", \"Principal\": { \"AWS\": \"arn:aws:iam::${ACCOUNT_ID}:root\" }, \"Action\": \"sts:AssumeRole\" } ] }"
+
+		$ echo $TRUST
+		{ "Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Principal": { "AWS": "arn:aws:iam::417071062939:root" }, "Action": "sts:AssumeRole" } ] }
+
+		C) Create a role named 'UdacityFlaskDeployCBKubectlRole' using the role policy document:
+		$  aws iam create-role --role-name UdacityFlaskDeployCBKubectlRole --assume-role-policy-document "$TRUST" --output text --query 'Role.Arn'
+		arn:aws:iam::417071062939:role/UdacityFlaskDeployCBKubectlRole
+
+		D) Create a role policy document that also allows the actions "eks:Describe*" and "ssm:GetParameters". You can create the document in your tmp directory:
+		$ echo '{ "Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Action": [ "eks:Describe*", "ssm:GetParameters" ], "Resource": "*" } ] }' > /tmp/iam-role-policy 
+
+		$ cat /tmp/iam-role-policy
+		{ "Version": "2012-10-17", "Statement": [ { "Effect": "Allow", "Action": [ "eks:Describe*", "ssm:GetParameters" ], "Resource": "*" } ] }
+
+		$ aws iam put-role-policy --role-name UdacityFlaskDeployCBKubectlRole --policy-name eks-describe --policy-document file:///tmp/iam-role-policy
+		
+
+	Grant the role access to the cluster. The 'aws-auth ConfigMap' is used to grant role based access control to your cluster.
+
+		A) Get the current configmap and save it to a file:
+		$ kubectl get -n kube-system configmap/aws-auth -o yaml > /tmp/aws-auth-patch.yml
+
+		B) In the data/mapRoles section of this document add, replacing <ACCOUNT_ID> with your account id:
+			- rolearn: arn:aws:iam::<ACCOUNT_ID>:role/UdacityFlaskDeployCBKubectlRole
+			    username: build
+			    groups:
+			      - system:masters
+
+		C) $ cat /tmp/aws-auth-patch.yml
+			apiVersion: v1
+				data:
+				  mapRoles: |
+				    - groups:
+				      - system:bootstrappers
+				      - system:nodes
+				      rolearn: arn:aws:iam::417071062939:role/eksctl-simple-jwt-api-nodegroup-n-NodeInstanceRole-16HS5II2XOCE8
+				      username: system:node:{{EC2PrivateDNSName}}
+				    - groups:
+				      - system:masters
+				      rolearn: arn:aws:iam::417071062939:role/UdacityFlaskDeployCBKubectlRole
+				      username: build
+				  mapUsers: |
+				    []
+				kind: ConfigMap
+				metadata:
+				  creationTimestamp: "2020-06-22T16:52:59Z"
+				  name: aws-auth
+				  namespace: kube-system
+				  resourceVersion: "935"
+				  selfLink: /api/v1/namespaces/kube-system/configmaps/aws-auth
+				  uid: 7064632d-28af-4f2d-abaf-68e0883f56ee
+
+		D) Now update your cluster's configmap:
+			$ kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
+			configmap/aws-auth patched
+
+4.Store a secret using parameter store
+
+		A) Personal access tokens
+		eba79f73bde296da0808f098f19d0341ff1a9ccf
+
+
+		B) Add buildspec.yml at the end
+		env:
+		  parameter-store:         
+		    JWT_SECRET: JWT_SECRET
+
+		C) Put secret into AWS Parameter Store
+		aws ssm put-parameter --name JWT_SECRET --value “VamsiChanakya” --type SecureString --overwrite
+
+
+		$ aws ssm put-parameter --name JWT_SECRET --value "YourJWTSecret" --type SecureString
+		{
+		    "Version": 1,
+		    "Tier": "Standard"
+		}
+
+		D) $ aws ssm get-parameter --name JWT_SECRET
+			{
+			    "Parameter": {
+			        "Name": "JWT_SECRET",
+			        "Type": "SecureString",
+			        "Value": "AQICAHhiFsPrenYY43N24iTFCdL0n6lRNxK/W24MYzx1b8qb0gHOXt7/rRYZG15hooJ4h2KXAAAAazBpBgkqhkiG9w0BBwagXDBaAgEAMFUGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQMkxJxWeiyY6LQ2KGoAgEQgCjWJEaYB9ZW0bZK6i5aO98Dqiq6DktiXi+hPegJ3PsrOg2Zt8BDWkpS",
+			        "Version": 1,
+			        "LastModifiedDate": 1592797900.744,
+			        "ARN": "arn:aws:ssm:us-east-2:417071062939:parameter/JWT_SECRET",
+			        "DataType": "text"
+			    }
+			}
+
+5.Create a continuous delivery pipeline using the AWS CodePipeline service. GitHub check-ins will trigger the pipeline.
+
+6. Create a CodeBuild stage which will build, test, and deploy your code
+
