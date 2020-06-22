@@ -149,6 +149,7 @@ In this project you will:
 			    }
 			}
 
+
 5.Create a continuous delivery pipeline using the AWS CodePipeline service. GitHub check-ins will trigger the pipeline.
 
 6. Create a CodeBuild stage which will build, test, and deploy your code
