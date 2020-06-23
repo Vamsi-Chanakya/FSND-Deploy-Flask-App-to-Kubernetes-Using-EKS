@@ -205,3 +205,8 @@
         [Container] 2020/06/23 01:34:06 Phase complete: PRE_BUILD State: FAILED
         [Container] 2020/06/23 01:34:06 Phase context status code: COMMAND_EXECUTION_ERROR Message: Error while executing command: pytest test_main.py. Reason: exit status 1
 
+    Successful Build Run : simple-jwt-api-stack-test:b5902057-215d-4bd8-8bf4-911dfed1763d
+
+15) http://a640d07e4190841249c24acba03e9bab-1473204004.us-west-2.elb.amazonaws.com/ returned "Healthy"
+
+    Tested with postman as well.
