@@ -132,7 +132,45 @@
     Docker image    : aws/codebuild/docker:17.09.0
     kubectl IAM role: UdacityFlaskDeployCBKubectlRole
     EKS cluster name: simple-jwt-api
-    
-5) Create a pipeline watching for commits to your Github repository
 
-6) Build and deploy your image using CodeBuild
+9) Create a pipeline watching for commits to your Github repository
+
+10) Build and deploy your image using CodeBuild
+
+11) Grab the EKS Cluster endpoint URL
+
+    $ kubectl get services simple-jwt-api -o wide
+    NAME             TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)        AGE     SELECTOR
+    simple-jwt-api   LoadBalancer   10.100.251.142   a640d07e4190841249c24acba03e9bab-1473204004.us-west-2.elb.amazonaws.com   80:31511/TCP   6m51s   app=simple-jwt-api
+
+12) Test endpoints
+
+    $ export URL="a640d07e4190841249c24acba03e9bab-1473204004.us-west-2.elb.amazonaws.com"
+
+    $ export TOKEN=`curl -d '{"email":"vamsi.chanakya@gmail.com","password":"Enter pwd at run time"}' -H "Content-Type: application/json" -X POST $URL/auth  | jq -r '.token'`
+          % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                         Dload  Upload   Total   Spent    Left  Speed
+        100   246  100   188  100    58   1074    331 --:--:-- --:--:-- --:--:--  1080
+
+    $ curl --request GET $URL/contents -H "Authorization: Bearer ${TOKEN}" | jq
+
+          % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                         Dload  Upload   Total   Spent    Left  Speed
+        100    71  100    71    0     0    701      0 --:--:-- --:--:-- --:--:--   702
+        {
+          "email": "vamsi.chanakya@gmail.com",
+          "exp": 1594083584,
+          "nbf": 1592873984
+        }
+
+   Important Reference : https://github.com/jungleBadger/FSND-Deploy-Flask-App-to-Kubernetes-Using-EKS/blob/master/troubleshooting/deploy.md#step-4---create-an-additional-role-and-fetch-aws-auth-file
+
+13) Add running tests as part of the build
+
+        pre_build:
+            commands:
+                - pip3 install -r requirements.txt
+                - pytest test_main.py
+
+
+14) You can check the tests prevent a bad deployment by breaking the tests on purpose
