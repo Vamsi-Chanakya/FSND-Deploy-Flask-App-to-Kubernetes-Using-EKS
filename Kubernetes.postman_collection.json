@@ -1,0 +1,107 @@
+{
+	"info": {
+		"_postman_id": "9fa63ea3-f34c-409d-b8be-094f0a838385",
+		"name": "Kubernetes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://a640d07e4190841249c24acba03e9bab-1473204004.us-west-2.elb.amazonaws.com/",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://a640d07e4190841249c24acba03e9bab-1473204004.us-west-2.elb.amazonaws.com/",
+					"protocol": "http",
+					"host": [
+						"a640d07e4190841249c24acba03e9bab-1473204004",
+						"us-west-2",
+						"elb",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://a640d07e4190841249c24acba03e9bab-1473204004.us-west-2.elb.amazonaws.com/auth",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"email\":\"vamsi.chanakya@gmail.com\",\"password\":\"vamsi\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://a640d07e4190841249c24acba03e9bab-1473204004.us-west-2.elb.amazonaws.com/auth",
+					"protocol": "http",
+					"host": [
+						"a640d07e4190841249c24acba03e9bab-1473204004",
+						"us-west-2",
+						"elb",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"auth"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://a640d07e4190841249c24acba03e9bab-1473204004.us-west-2.elb.amazonaws.com/contents",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1OTQwODYyMjYsIm5iZiI6MTU5Mjg3NjYyNiwiZW1haWwiOiJ2YW1zaS5jaGFuYWt5YUBnbWFpbC5jb20ifQ.HC5ByNZVs93ZKydXv6X1zfByrFuhD5dd3d87VDdd3Rg",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://a640d07e4190841249c24acba03e9bab-1473204004.us-west-2.elb.amazonaws.com/contents",
+					"protocol": "http",
+					"host": [
+						"a640d07e4190841249c24acba03e9bab-1473204004",
+						"us-west-2",
+						"elb",
+						"amazonaws",
+						"com"
+					],
+					"path": [
+						"contents"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
