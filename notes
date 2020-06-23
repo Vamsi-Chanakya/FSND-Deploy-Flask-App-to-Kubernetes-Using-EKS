@@ -175,5 +175,33 @@
 
 14) You can check the tests prevent a bad deployment by breaking the tests on purpose
 
-        First Successful Code Build     : simple-jwt-api-stack-test:0d637cfe-ee68-41b5-a59d-ecf14b375408
-        Intentional Failure Code Build  : simple-jwt-api-stack-test:4074f515-7818-4c67-b9b7-e82df0cca7ed
+    Failure Build Run : simple-jwt-api-stack-test:0ed2d314-3e7f-4092-81e5-caf5120a0cc2
+
+        [Container] 2020/06/23 01:34:06 Running command pytest test_main.py
+        ============================= test session starts ==============================
+        platform linux2 -- Python 2.7.6, pytest-4.6.11, py-1.8.2, pluggy-0.13.1
+        rootdir: /codebuild/output/src348314477/src
+        collected 2 items
+
+        test_main.py F.                                                          [100%]
+
+        =================================== FAILURES ===================================
+        _________________________________ test_health __________________________________
+
+        client = <FlaskClient <Flask 'main'>>
+
+            def test_health(client):
+                response = client.get('/')
+                assert response.status_code == 200
+                assert response.json == 'Healthy'
+
+        >       assert False
+        E       assert False
+
+        test_main.py:30: AssertionError
+        ====================== 1 failed, 1 passed in 0.11 seconds ======================
+
+        [Container] 2020/06/23 01:34:06 Command did not exit successfully pytest test_main.py exit status 1
+        [Container] 2020/06/23 01:34:06 Phase complete: PRE_BUILD State: FAILED
+        [Container] 2020/06/23 01:34:06 Phase context status code: COMMAND_EXECUTION_ERROR Message: Error while executing command: pytest test_main.py. Reason: exit status 1
+
