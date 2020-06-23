@@ -174,3 +174,6 @@
 
 
 14) You can check the tests prevent a bad deployment by breaking the tests on purpose
+
+        First Successful Code Build     : simple-jwt-api-stack-test:0d637cfe-ee68-41b5-a59d-ecf14b375408
+        Intentional Failure Code Build  : simple-jwt-api-stack-test:4074f515-7818-4c67-b9b7-e82df0cca7ed
